@@ -32,7 +32,7 @@ flake.nix                    — single nixosConfigurations.homeserver; inputs: 
 hosts/homeserver/            — hardware config (partition UUIDs, swap, CIFS mounts, hostname)
 modules/                     — NixOS modules; all loaded by every build:
   common.nix, desktop-kde.nix, lan-apps.nix, minecraft.nix, databases.nix,
-  nginx.nix, samba.nix, emby.nix, nextcloud.nix, pihole-container.nix, xrdp.nix
+  nginx.nix, samba.nix, emby.nix, audiobookshelf.nix, nextcloud.nix, pihole-container.nix, xrdp.nix
 apps/                        — source for custom LAN apps (canonical copy; ExecStart refs nix store path)
 pkgs/                        — custom packages (brave-origin-nightly)
 ```
@@ -47,6 +47,7 @@ pkgs/                        — custom packages (brave-origin-nightly)
 | lan-pastebin | 5001 | Flask/waitress |
 | music-info-library | 5010 | Flask/waitress; secrets at `/var/lib/music-info/secrets.env` |
 | Emby | 8096 / 8920 | Podman container (pinned digest); PUID=0 PGID=125 |
+| Audiobookshelf | 13378 | Podman container (pinned digest); media at `/mnt/server-pc/Media` → `/media`; library path `/media/Audio Books` |
 | Nextcloud | 443 | `cloud.intrentaka.com`; native NixOS module, unstablePkgs.nextcloud34; MySQL |
 | Pi-hole | 8083 | Podman container; internal port 8080→8083 pinned via `FTLCONF_webserver_port` |
 | mc-control | 5020 | Flask/waitress; sudo-limited start/stop/is-active for Minecraft |
