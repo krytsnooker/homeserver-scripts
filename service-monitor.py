@@ -101,8 +101,10 @@ def _https_vhost(hostname):
 
 def _hostname(name):
     try:
-        ip = socket.getaddrinfo(name, None)[0][4][0]
-        return ip, ip == EXPECTED_IP
+        ips = [r[4][0] for r in socket.getaddrinfo(name, None)]
+        if EXPECTED_IP in ips:
+            return EXPECTED_IP, True
+        return ips[0] if ips else "unresolved", False
     except Exception:
         return "unresolved", False
 

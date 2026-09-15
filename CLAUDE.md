@@ -51,7 +51,7 @@ pkgs/                        — custom packages (brave-origin-nightly)
 | Nextcloud | 443 | `cloud.intrentaka.com`; native NixOS module, unstablePkgs.nextcloud34; MySQL |
 | Pi-hole | 8083 | Podman container; internal port 8080→8083 pinned via `FTLCONF_webserver_port` |
 | mc-control | 5020 | Flask/waitress; sudo-limited start/stop/is-active for Minecraft |
-| Minecraft | 25565 | paper-1_19_4; `autoStart=false`; `online-mode=false` (LAN only) |
+| Minecraft | 25565 | neoforge-1_20_1; `autoStart=false`; `online-mode=false` (LAN only) |
 
 External domains: `intrentaka.com` / `www.intrentaka.com` → Emby; `cloud.intrentaka.com` → Nextcloud. Let's Encrypt via NixOS ACME (ports 80+443 forwarded from router).
 
