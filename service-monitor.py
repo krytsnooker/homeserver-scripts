@@ -25,6 +25,7 @@ SERVICES = [
     ("lan-pastebin",        "lan-pastebin.service",                5001,  "http", None),
     ("music-info",          "music-info.service",                  5010,  "http", None),
     ("Emby",                "podman-emby.service",                 8096,  "http", "intrentaka.com"),
+    ("Audiobookshelf",      "podman-audiobookshelf.service",       13378, "http", None),
     ("Pi-hole",             "podman-pihole.service",               8083,  "http", None),
     ("Nextcloud PHP-FPM",   "phpfpm-nextcloud.service",            None,  None,   None),
     ("Nextcloud HTTPS",     None,                                  443,   "tcp",  "cloud.intrentaka.com"),
@@ -33,7 +34,7 @@ SERVICES = [
     ("Minecraft",           "minecraft-server-survival.service",   25565, "tcp",  None),
 ]
 
-HOSTNAME_CHECK = "homeserver.lan"
+HOSTNAME_CHECK = "homeserver"
 EXPECTED_IP    = "192.168.0.120"
 CIFS_MOUNTS    = ["/mnt/server-pc", "/var/lib/nextcloud/data"]
 
