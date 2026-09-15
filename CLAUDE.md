@@ -54,6 +54,10 @@ pkgs/                        — custom packages (brave-origin-nightly)
 
 External domains: `intrentaka.com` / `www.intrentaka.com` → Emby; `cloud.intrentaka.com` → Nextcloud. Let's Encrypt via NixOS ACME (ports 80+443 forwarded from router).
 
+**Router:** TP-Link ER605. Port forwarding lives at **Transmission → NAT → Virtual Servers** (standalone UI) or **Settings → Transmission → NAT → Virtual Servers** (Omada controller). Required rules: WAN:80 → 192.168.0.120:80 TCP, WAN:443 → 192.168.0.120:443 TCP. If external domains become unreachable, check these rules first — the ER605 loses them on some firmware updates/resets.
+
+**LAN DNS (split-horizon):** Pi-hole serves local DNS on port 53. `/var/lib/pihole/etc-pihole/custom.list` maps the external domains to 192.168.0.120 so LAN clients bypass the router (ER605 does not support hairpin NAT). After editing that file: `sudo systemctl restart podman-pihole.service`. The file is not tracked in the NixOS config — it lives in the Pi-hole volume and survives rebuilds, but would need to be recreated if `/var/lib/pihole/` is wiped.
+
 ```bash
 systemctl --failed                 # anything that didn't start
 journalctl -u <service> -f         # live logs
