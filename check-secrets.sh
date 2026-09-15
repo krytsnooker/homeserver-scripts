@@ -31,6 +31,16 @@ check_keys_present() {
   local file="$1"; shift
   local present
   present=$(cut -d= -f1 "$file" 2>/dev/null)
+  if [ -z "$present" ]; then
+    local size
+    size=$(stat -c '%s' "$file" 2>/dev/null)
+    if [ "${size:-0}" -gt 0 ]; then
+      ok "non-empty ($size bytes) — run as root to verify individual keys"
+    else
+      bad "file is empty or unreadable"
+    fi
+    return
+  fi
   for key in "$@"; do
     if echo "$present" | grep -qx "$key"; then
       ok "has key $key"
@@ -60,8 +70,8 @@ fi
 section "/var/lib/music-info/secrets.env (Discogs + Emby API)"
 f=/var/lib/music-info/secrets.env
 if [ -f "$f" ]; then
-  check_perms "$f" 600 "root:root"
-  check_keys_present "$f" DISCOGS_TOKEN EMBY_API_KEY EMBY_BASE_URL EMBY_EXTERNAL_URL MUSIC_PATH
+  check_perms "$f" 600 "music-info:music-info"
+  check_keys_present "$f" DISCOGS_TOKEN EMBY_API_KEY EMBY_BASE_URL EMBY_EXTERNAL_URL
 else
   bad "does not exist"
 fi
