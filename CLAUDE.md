@@ -41,7 +41,7 @@ pkgs/                        — custom packages (brave-origin-nightly)
 
 | Service | Port | Notes |
 |---|---|---|
-| homepage (nginx) | 5000 | Static site from `apps/homepage/`; `/reference.html` is this doc |
+| homepage (nginx) | 5000 | Static site from `apps/homepage/`; `/reference.html` is the homeserver reference; `/documentation.html` is the project wiki index |
 | typing-tutor | 3000 | Node/Express |
 | math-tutor | 3001 | Node/Express |
 | lan-pastebin | 5001 | Flask/waitress |
