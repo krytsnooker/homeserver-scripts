@@ -121,6 +121,23 @@ def _failed_units():
         return -1
 
 
+def _nix_store():
+    try:
+        r = subprocess.run(["du", "-sh", "/nix/store"], capture_output=True, text=True, timeout=30)
+        size = r.stdout.split()[0] if r.returncode == 0 else "?"
+    except Exception:
+        size = "?"
+    try:
+        r = subprocess.run(
+            ["nix-env", "--list-generations", "--profile", "/nix/var/nix/profiles/system"],
+            capture_output=True, text=True, timeout=10,
+        )
+        generations = len([l for l in r.stdout.strip().splitlines() if l.strip()])
+    except Exception:
+        generations = -1
+    return size, generations
+
+
 def _cifs(path):
     try:
         with open("/proc/mounts") as f:
@@ -134,11 +151,13 @@ def _cifs(path):
 
 
 def run_checks():
+    nix_size, nix_gens = _nix_store()
     results = {
         "timestamp":    datetime.now().strftime("%Y-%m-%d  %H:%M:%S"),
         "failed_units": _failed_units(),
         "hostname":     _hostname(HOSTNAME_CHECK),
         "mounts":       {p: _cifs(p) for p in CIFS_MOUNTS},
+        "nix_store":    (nix_size, nix_gens),
         "services":     [],
     }
 
@@ -357,6 +376,10 @@ class MainWindow(QMainWindow):
 
         for path, ok in r["mounts"].items():
             self._sys_row(ok, f"CIFS  {path}  {'✓ mounted' if ok else '✗ not mounted'}")
+
+        nix_size, nix_gens = r["nix_store"]
+        gens_str = f"{nix_gens} generations" if nix_gens >= 0 else "? generations"
+        self._sys_row(True, f"Nix store  {nix_size}  ·  {gens_str}")
 
     def _sys_row(self, ok, text):
         lbl = QLabel()
