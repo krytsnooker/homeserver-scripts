@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Typing Tutor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app" id="app">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar" type="button">&#8249;</button>
+      <span class="sidebar-eyebrow">Setup</span>
+    </div>
+    <div class="sidebar-body">
+      <a class="back-nav" href="http://homeserver:5000">&larr; homeserver</a>
+
+      <div class="field">
+        <label for="practiceMode">Practice Mode</label>
+        <select id="practiceMode" onchange="toggleModeUI()">
+          <option value="words">Word Mode</option>
+          <option value="chars">Character Mode (60s)</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="userName">User Name</label>
+        <input type="text" id="userName" list="nameOptions" placeholder="Name" autocomplete="off">
+        <datalist id="nameOptions"></datalist>
+      </div>
+
+      <div id="wordSettings">
+        <div class="field">
+          <label for="wordsPerLine">Words Per Line</label>
+          <select id="wordsPerLine"></select>
+        </div>
+        <div class="field" style="margin-top:10px;">
+          <label for="totalLines">Total Lines</label>
+          <select id="totalLines"></select>
+        </div>
+        <div class="field" style="margin-top:10px;">
+          <label for="visibleLines">Visible Lines</label>
+          <select id="visibleLines"></select>
+        </div>
+      </div>
+
+      <div class="field">
+        <label for="fontSize">Font Size</label>
+        <select id="fontSize"></select>
+      </div>
+
+      <div class="field">
+        <label>Allowed Letters</label>
+        <div class="grid-controls">
+          <button type="button" onclick="toggleAllLetters(true)">All On</button>
+          <button type="button" onclick="toggleAllLetters(false)">All Off</button>
+        </div>
+        <div id="letter-grid"></div>
+      </div>
+
+      <button class="btn-primary" type="button" onclick="startSession()">Start Session</button>
+      <button class="btn-secondary" type="button" onclick="showStats()">View Stats</button>
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="content-header">
+      <div>
+        <div class="content-eyebrow">Homeserver</div>
+        <h1 class="content-title">Typing Tutor</h1>
+      </div>
+      <div class="header-right">
+        <span id="timer">&#8212;</span>
+        <button class="theme-toggle" id="themeToggle" type="button">theme: auto</button>
+      </div>
+    </div>
+
+    <div class="content-body">
+      <div id="display-area" class="placeholder-text">Configure options and press Start Session</div>
+      <div id="results"></div>
+    </div>
+  </main>
+
+</div>
+
+<div id="statsModal" class="modal">
+  <div class="modal-content">
+    <button class="close-btn" type="button" onclick="closeStats()" aria-label="Close">&times;</button>
+    <h2 class="modal-title">Typing Stats</h2>
+    <div class="stats-sections">
+      <section>
+        <div class="stats-section-title">Word Mode</div>
+        <table id="wordStatsTable">
+          <thead><tr><th>Date</th><th>User</th><th>Accuracy</th><th>CPS</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </section>
+      <section>
+        <div class="stats-section-title">Character Mode</div>
+        <table id="charStatsTable">
+          <thead><tr><th>Date</th><th>User</th><th>Accuracy</th><th>CPS</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

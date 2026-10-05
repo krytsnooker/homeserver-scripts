@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Math Tutor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app" id="app">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar" type="button">&#8249;</button>
+      <span class="sidebar-eyebrow">Setup</span>
+    </div>
+    <div class="sidebar-body">
+      <a class="back-nav" href="http://homeserver:5000">&larr; homeserver</a>
+
+      <div class="field">
+        <label for="mathMode">Operation</label>
+        <select id="mathMode" onchange="onModeChange()">
+          <option value="addition">Addition (+)</option>
+          <option value="subtraction">Subtraction (−)</option>
+          <option value="multiplication">Multiplication (×)</option>
+          <option value="division">Division (÷)</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="userName">User Name</label>
+        <input type="text" id="userName" list="nameOptions" placeholder="Name" autocomplete="off">
+        <datalist id="nameOptions"></datalist>
+      </div>
+
+      <div class="field" id="varField">
+        <label for="varCount">Variables</label>
+        <select id="varCount"></select>
+      </div>
+
+      <div class="field">
+        <label for="fontSize">Font Size</label>
+        <select id="fontSize"></select>
+      </div>
+
+      <div class="field">
+        <label>Allowed Numbers</label>
+        <div class="grid-controls">
+          <button type="button" onclick="toggleAll(true)">All On</button>
+          <button type="button" onclick="toggleAll(false)">All Off</button>
+        </div>
+        <div id="number-grid"></div>
+      </div>
+
+      <button class="btn-primary" type="button" onclick="startSession()">Start Session</button>
+      <button class="btn-secondary" type="button" onclick="showStats()">View Stats</button>
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="content-header">
+      <div>
+        <div class="content-eyebrow">Homeserver</div>
+        <h1 class="content-title">Math Tutor</h1>
+      </div>
+      <div class="header-right">
+        <span id="timer">&#8212;</span>
+        <button class="theme-toggle" id="themeToggle" type="button">theme: auto</button>
+      </div>
+    </div>
+
+    <div class="content-body">
+      <div id="display-area" class="placeholder-text">Configure options and press Start Session</div>
+
+      <div id="input-container" style="display:none;">
+        <div id="math-display-val">?</div>
+        <div class="numpad">
+          <button class="num-btn" type="button" onclick="numInput(1)">1</button>
+          <button class="num-btn" type="button" onclick="numInput(2)">2</button>
+          <button class="num-btn" type="button" onclick="numInput(3)">3</button>
+          <button class="num-btn" type="button" onclick="numInput(4)">4</button>
+          <button class="num-btn" type="button" onclick="numInput(5)">5</button>
+          <button class="num-btn" type="button" onclick="numInput(6)">6</button>
+          <button class="num-btn" type="button" onclick="numInput(7)">7</button>
+          <button class="num-btn" type="button" onclick="numInput(8)">8</button>
+          <button class="num-btn" type="button" onclick="numInput(9)">9</button>
+          <button class="num-btn btn-clear" type="button" onclick="clearInput()">C</button>
+          <button class="num-btn" type="button" onclick="numInput(0)">0</button>
+          <button class="num-btn btn-ok" type="button" onclick="submitInput()">OK</button>
+        </div>
+      </div>
+
+      <div id="results"></div>
+    </div>
+  </main>
+
+</div>
+
+<div id="statsModal" class="modal">
+  <div class="modal-content">
+    <button class="close-btn" type="button" onclick="closeStats()" aria-label="Close">&times;</button>
+    <h2 class="modal-title">Math Stats</h2>
+    <div class="table-wrap">
+      <table id="statsTable">
+        <thead>
+          <tr><th>Date</th><th>User</th><th>Mode</th><th>Score</th><th>Accuracy</th></tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

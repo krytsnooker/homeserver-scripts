@@ -1,0 +1,13 @@
+{
+  "consoles": [
+    {
+      "name": "PS2",
+      "server_path": "/mnt/server-pc/Games/ROMS/Sony Playstation 2/"
+    },
+    {
+      "name": "Switch",
+      "server_path": "/mnt/server-pc/Games/emu/Switch Roms/NSP"
+    }
+  ],
+  "saves_path": ""
+}

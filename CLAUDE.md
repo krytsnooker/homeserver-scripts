@@ -32,7 +32,7 @@ flake.nix                    — single nixosConfigurations.homeserver; inputs: 
 hosts/homeserver/            — hardware config (partition UUIDs, swap, CIFS mounts, hostname)
 modules/                     — NixOS modules; all loaded by every build:
   common.nix, desktop-kde.nix, lan-apps.nix, minecraft.nix, databases.nix,
-  nginx.nix, samba.nix, emby.nix, audiobookshelf.nix, nextcloud.nix, pihole-container.nix, xrdp.nix
+  nginx.nix, samba.nix, emby.nix, audiobookshelf.nix, nextcloud.nix, pihole-container.nix, xrdp.nix, mumble.nix
 apps/                        — source for custom LAN apps (canonical copy; ExecStart refs nix store path)
 pkgs/                        — custom packages (brave-origin-nightly)
 ```
@@ -52,6 +52,7 @@ pkgs/                        — custom packages (brave-origin-nightly)
 | Pi-hole | 8083 | Podman container; internal port 8080→8083 pinned via `FTLCONF_webserver_port` |
 | mc-control | 5020 | Flask/waitress; sudo-limited start/stop/is-active for Minecraft |
 | Minecraft | 25565 | neoforge-1_20_1; `autoStart=false`; `online-mode=false` (LAN only) |
+| Mumble (murmur) | 64738 | TCP+UDP; `services.murmur`; registerName "hometalk"; data at `/var/lib/murmur` |
 
 External domains: `intrentaka.com` / `www.intrentaka.com` → Emby; `cloud.intrentaka.com` → Nextcloud. Let's Encrypt via NixOS ACME (ports 80+443 forwarded from router).
 

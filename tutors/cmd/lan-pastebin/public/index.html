@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LAN Pastebin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app" id="app">
+
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <button class="sidebar-toggle" id="sidebarToggle" aria-label="Toggle sidebar" type="button">&#8249;</button>
+      <span class="sidebar-eyebrow">Options</span>
+    </div>
+    <div class="sidebar-body">
+      <a class="back-nav" href="http://homeserver:5000">&larr; homeserver</a>
+
+      <div class="field">
+        <label for="userName">Your name</label>
+        <input type="text" id="userName" placeholder="Anonymous" autocomplete="off">
+      </div>
+
+      <div class="field" id="filterField">
+        <label for="userFilter">Filter by user</label>
+        <select id="userFilter">
+          <option value="">All users</option>
+        </select>
+      </div>
+
+      <button class="theme-toggle" id="themeToggle" type="button">theme: auto</button>
+    </div>
+  </aside>
+
+  <main class="content">
+    <div class="content-header">
+      <div>
+        <div class="content-eyebrow">Homeserver</div>
+        <h1 class="content-title">Pastebin</h1>
+      </div>
+      <div class="header-right">
+        <span id="paste-count"></span>
+      </div>
+    </div>
+
+    <div class="content-body">
+      <div id="new-paste-section">
+        <textarea id="pasteContent" placeholder="Paste your text here... (Ctrl+Enter to submit)"></textarea>
+        <div class="paste-submit-row">
+          <button class="btn-primary" type="button" onclick="submitPaste()">Save paste</button>
+          <span class="paste-hint">Ctrl+Enter</span>
+        </div>
+      </div>
+
+      <div id="paste-list"></div>
+      <div id="paste-detail" style="display:none"></div>
+    </div>
+  </main>
+
+</div>
+<script src="script.js"></script>
+</body>
+</html>

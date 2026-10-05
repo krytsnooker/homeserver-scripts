@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ROM Transfer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  color-scheme: dark;
+  --bg: #0e1316; --surface: #151c20; --surface-2: #1c252a; --surface-3: #232d33;
+  --border: #2b363c; --text: #e7edf0; --text-dim: #93a5ac; --text-faint: #5f7178;
+  --accent: #5fd6c4; --accent-dim: #3a8f81;
+  --danger: #e07a6b; --danger-bg: rgba(224,122,107,0.12);
+  --shadow: 0 8px 24px rgba(0,0,0,0.35);
+  --header-h: 48px; --sidebar-w: 170px;
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    color-scheme: light;
+    --bg: #f4f6f5; --surface: #ffffff; --surface-2: #edf1f0; --surface-3: #e3e9e7;
+    --border: #d3dcda; --text: #14201f; --text-dim: #4d6260; --text-faint: #8098a0;
+    --accent: #0f8a76; --accent-dim: #b7e6dc;
+    --danger: #ab3d2c; --danger-bg: rgba(171,61,44,0.1);
+    --shadow: 0 8px 24px rgba(20,32,31,0.08);
+  }
+}
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #0e1316; --surface: #151c20; --surface-2: #1c252a; --surface-3: #232d33;
+  --border: #2b363c; --text: #e7edf0; --text-dim: #93a5ac; --text-faint: #5f7178;
+  --accent: #5fd6c4; --accent-dim: #3a8f81;
+  --danger: #e07a6b; --danger-bg: rgba(224,122,107,0.12);
+  --shadow: 0 8px 24px rgba(0,0,0,0.35);
+}
+html[data-theme="light"] {
+  color-scheme: light;
+  --bg: #f4f6f5; --surface: #ffffff; --surface-2: #edf1f0; --surface-3: #e3e9e7;
+  --border: #d3dcda; --text: #14201f; --text-dim: #4d6260; --text-faint: #8098a0;
+  --accent: #0f8a76; --accent-dim: #b7e6dc;
+  --danger: #ab3d2c; --danger-bg: rgba(171,61,44,0.1);
+  --shadow: 0 8px 24px rgba(20,32,31,0.08);
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; background: var(--bg); color: var(--text); }
+body { font-family: "IBM Plex Sans", -apple-system, "Segoe UI", sans-serif; line-height: 1.55; -webkit-font-smoothing: antialiased; display: flex; flex-direction: column; }
+a:focus-visible, button:focus-visible, select:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ── Header ── */
+header {
+  height: var(--header-h); display: flex; align-items: center; gap: 0.7rem;
+  padding: 0 1rem; background: var(--surface); border-bottom: 1px solid var(--border);
+  flex-shrink: 0; flex-wrap: nowrap; overflow: hidden;
+}
+.back-link { font-family: "IBM Plex Mono", monospace; font-size: 0.75rem; color: var(--accent); text-decoration: none; white-space: nowrap; }
+.back-link:hover { text-decoration: underline; }
+.eyebrow { font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; letter-spacing: 0.12em; text-transform: uppercase; color: var(--accent); white-space: nowrap; }
+header label { font-family: "IBM Plex Mono", monospace; font-size: 0.8rem; color: var(--text-dim); white-space: nowrap; }
+header select {
+  font-family: "IBM Plex Mono", monospace; font-size: 0.85rem;
+  padding: 0.25rem 0.5rem; background: var(--surface-2); color: var(--text);
+  border: 1px solid var(--border); border-radius: 5px;
+}
+.hdr-spacer { flex: 1; }
+header a.dl-btn {
+  font-family: "IBM Plex Mono", monospace; font-size: 0.75rem; color: var(--accent);
+  border: 1px solid var(--accent-dim); border-radius: 5px; padding: 0.25rem 0.6rem;
+  text-decoration: none; white-space: nowrap;
+}
+header a.dl-btn:hover { border-color: var(--accent); }
+header button {
+  font-family: "IBM Plex Mono", monospace; font-size: 0.75rem;
+  padding: 0.25rem 0.7rem; background: var(--surface-2); color: var(--text-dim);
+  border: 1px solid var(--border); border-radius: 5px; cursor: pointer; white-space: nowrap;
+}
+header button:hover { color: var(--text); border-color: var(--text-faint); }
+.update-btn { background: var(--accent) !important; color: var(--bg) !important; border-color: var(--accent) !important; font-weight: 600 !important; }
+.update-btn:hover { opacity: 0.85; }
+
+/* ── App body ── */
+.app-body { display: flex; flex: 1; overflow: hidden; }
+
+/* ── Sidebar ── */
+.sidebar {
+  width: var(--sidebar-w); background: var(--surface); border-right: 1px solid var(--border);
+  flex-shrink: 0; overflow-y: auto; padding: 0.5rem 0;
+  display: flex; flex-direction: column;
+}
+.sidebar-group {
+  font-family: "IBM Plex Mono", monospace; font-size: 0.63rem; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--text-faint);
+  padding: 1rem 1rem 0.25rem; margin-top: 0.25rem;
+}
+.sidebar-item {
+  font-family: "IBM Plex Mono", monospace; font-size: 0.82rem;
+  padding: 0.45rem 1rem; cursor: pointer; color: var(--text-dim);
+  border-left: 2px solid transparent; user-select: none;
+}
+.sidebar-item:hover { color: var(--text); background: var(--surface-2); }
+.sidebar-item.active { color: var(--accent); border-left-color: var(--accent); background: var(--surface-2); }
+
+/* ── Content area ── */
+.content-area { flex: 1; overflow: hidden; display: flex; flex-direction: column; }
+
+/* ── Transfer view ── */
+.tabs { display: flex; background: var(--surface); border-bottom: 1px solid var(--border); flex-shrink: 0; }
+.tabs button {
+  font-family: "IBM Plex Mono", monospace; font-size: 0.85rem;
+  padding: 0.6rem 1.6rem; background: none; border: none;
+  color: var(--text-faint); cursor: pointer; letter-spacing: 0.04em;
+  border-bottom: 2px solid transparent; margin-bottom: -1px;
+}
+.tabs button.active { color: var(--accent); border-bottom-color: var(--accent); }
+.tabs button:hover:not(.active) { color: var(--text-dim); }
+
+#status-bar {
+  padding: 0.35rem 1.2rem; background: var(--surface-2); flex-shrink: 0;
+  font-family: "IBM Plex Mono", monospace; font-size: 0.8rem;
+  color: var(--text-faint); border-bottom: 1px solid var(--border);
+}
+#status-bar.error { color: var(--danger); }
+
+.panes { display: grid; grid-template-columns: 1fr 1fr; flex: 1; overflow: hidden; }
+.pane { overflow-y: auto; padding: 0.8rem 1.2rem; }
+.pane:first-child { border-right: 1px solid var(--border); }
+.pane h2 {
+  font-family: "IBM Plex Mono", monospace; font-size: 0.7rem; letter-spacing: 0.1em;
+  text-transform: uppercase; color: var(--text-faint); margin: 0 0 0.5rem; font-weight: 500;
+}
+.disk-info { font-family: "IBM Plex Mono", monospace; font-size: 0.75rem; color: var(--text-faint); margin-bottom: 0.6rem; }
+.file-search { width: 100%; box-sizing: border-box; font-family: "IBM Plex Mono", monospace; font-size: 0.82rem; background: var(--surface-2); color: var(--text); border: 1px solid var(--border); border-radius: 4px; padding: 4px 8px; margin-bottom: 0.5rem; outline: none; }
+.file-search:focus { border-color: var(--accent); }
+.save-ind { display: inline-block; width: 0.55rem; height: 0.55rem; border-radius: 50%; margin-right: 0.4rem; flex-shrink: 0; vertical-align: middle; cursor: default; position: relative; }
+.save-ind.exact    { background: #4caf7d; }
+.save-ind.stale    { background: #e0a03a; }
+.save-ind.unpushed { background: #e07a6b; }
+.save-ind.srv-diff { background: #e0a03a; }
+tr.save-row { cursor: pointer; }
+tr.save-row:hover { background: var(--surface-2); }
+tr.save-row.selected { background: var(--surface-3); outline: 1px solid var(--accent); }
+.save-tooltip { position: fixed; background: var(--surface-3); color: var(--text); border: 1px solid var(--border); border-radius: 4px; padding: 4px 8px; font-size: 0.75rem; font-family: "IBM Plex Sans", sans-serif; pointer-events: none; white-space: nowrap; z-index: 1000; display: none; box-shadow: var(--shadow); }
+.pane-heading { display: flex; align-items: center; gap: 0.4rem; margin: 0 0 0.5rem; }
+.pane-heading h2 { margin: 0; }
+.legend-btn { font-family: "IBM Plex Mono", monospace; font-size: 0.65rem; color: var(--text-faint); background: var(--surface-2); border: 1px solid var(--border); border-radius: 50%; width: 1.1rem; height: 1.1rem; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; padding: 0; }
+.legend-btn:hover { color: var(--text); border-color: var(--text-faint); }
+.legend-popup { position: fixed; background: var(--surface-3); color: var(--text); border: 1px solid var(--border); border-radius: 6px; padding: 0.6rem 0.8rem; font-size: 0.78rem; font-family: "IBM Plex Sans", sans-serif; z-index: 1001; box-shadow: var(--shadow); min-width: 16rem; }
+.legend-popup .legend-row { display: flex; align-items: center; gap: 0.5rem; padding: 0.2rem 0; }
+.legend-popup .save-ind { flex-shrink: 0; }
+
+/* ── Config panels ── */
+.config-panel { flex: 1; overflow-y: auto; padding: 1.4rem 1.6rem; }
+.config-panel h2 {
+  font-family: "IBM Plex Mono", monospace; font-size: 1rem; font-weight: 600;
+  margin: 0 0 0.3rem; color: var(--text);
+}
+.config-panel .panel-desc { font-size: 0.85rem; color: var(--text-dim); margin: 0 0 1.2rem; }
+.panel-section { margin-bottom: 1.8rem; }
+.panel-section h3 {
+  font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; letter-spacing: 0.08em;
+  text-transform: uppercase; color: var(--text-faint); margin: 0 0 0.6rem; font-weight: 500;
+}
+
+/* ── Tables ── */
+table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+th {
+  text-align: left; padding: 0.4rem 0.5rem;
+  font-family: "IBM Plex Mono", monospace; font-size: 0.67rem;
+  letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--text-faint); border-bottom: 1px solid var(--border); font-weight: 500;
+}
+td { padding: 0.4rem 0.5rem; border-bottom: 1px solid var(--border); vertical-align: middle; }
+tr:last-child td { border-bottom: none; }
+tr:focus-within td { background: var(--surface-2); }
+.name-cell { word-break: break-all; }
+.size-cell { white-space: nowrap; color: var(--text-faint); width: 7rem; font-family: "IBM Plex Mono", monospace; font-size: 0.82rem; }
+.btn-cell { width: 7rem; text-align: right; white-space: nowrap; }
+
+/* ── Action buttons ── */
+button.action {
+  font-family: "IBM Plex Mono", monospace; font-size: 0.78rem;
+  padding: 0.25rem 0.7rem; border-radius: 5px; cursor: pointer;
+  border: 1px solid var(--border); background: var(--surface-2);
+  color: var(--text-dim); letter-spacing: 0.02em;
+}
+button.action:hover, button.action:focus { color: var(--text); border-color: var(--text-faint); }
+button.action.danger { color: var(--danger); border-color: var(--danger); }
+button.action.danger:hover { background: var(--danger-bg); }
+button.action.primary { color: var(--accent); border-color: var(--accent-dim); }
+button.action.primary:hover { background: rgba(95,214,196,0.08); border-color: var(--accent); }
+
+/* ── Panel inputs ── */
+.panel-input {
+  font-family: "IBM Plex Mono", monospace; font-size: 0.88rem;
+  padding: 0.4rem 0.6rem; background: var(--surface-2); color: var(--text);
+  border: 1px solid var(--border); border-radius: 5px; width: 100%;
+}
+.panel-input:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
+.panel-label {
+  display: block; margin: 0 0 0.3rem;
+  font-family: "IBM Plex Mono", monospace; font-size: 0.7rem;
+  letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-faint);
+}
+.panel-actions { display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap; align-items: center; }
+.panel-btn {
+  font-family: "IBM Plex Mono", monospace; font-size: 0.82rem;
+  padding: 0.4rem 1rem; border-radius: 5px; cursor: pointer;
+  border: 1px solid var(--border); background: var(--surface-2); color: var(--text-dim);
+}
+.panel-btn:hover { color: var(--text); border-color: var(--text-faint); }
+.panel-btn.primary { color: var(--accent); border-color: var(--accent-dim); }
+.panel-btn.primary:hover { background: rgba(95,214,196,0.08); border-color: var(--accent); }
+.panel-btn.danger { color: var(--danger); border-color: var(--danger); }
+.panel-btn.danger:hover { background: var(--danger-bg); }
+
+/* inline editable table */
+.edit-table input[type=text] {
+  font-family: "IBM Plex Mono", monospace; font-size: 0.82rem;
+  padding: 0.25rem 0.4rem; background: var(--surface-2); color: var(--text);
+  border: 1px solid var(--border); border-radius: 4px; width: 100%;
+}
+.edit-table input[type=text]:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
+.edit-table select {
+  font-family: "IBM Plex Mono", monospace; font-size: 0.82rem;
+  padding: 0.25rem 0.4rem; background: var(--surface-2); color: var(--text);
+  border: 1px solid var(--border); border-radius: 4px; width: 100%;
+}
+
+/* scan results */
+.scan-result-path { font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; color: var(--text-dim); word-break: break-all; }
+.scan-count { font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; color: var(--text-faint); }
+.scan-console-sel { font-family: "IBM Plex Mono", monospace; font-size: 0.78rem; background: var(--surface-2); color: var(--text); border: 1px solid var(--border); border-radius: 4px; padding: 2px 4px; width: 100%; }
+
+/* ── Modals ── */
+.modal-bg { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 100; align-items: center; justify-content: center; }
+.modal-bg.open { display: flex; }
+.modal {
+  background: var(--surface); border: 1px solid var(--border);
+  border-radius: 10px; padding: 1.6rem 2rem;
+  min-width: 380px; max-width: 92vw; max-height: 90vh; overflow-y: auto;
+  box-shadow: var(--shadow);
+}
+.modal h2 { font-family: "IBM Plex Mono", monospace; font-size: 1rem; font-weight: 600; margin: 0 0 0.8rem; }
+.modal p { font-size: 0.88rem; color: var(--text-dim); margin: 0 0 0.8rem; }
+.modal input[type=text], .modal select {
+  width: 100%; font-family: "IBM Plex Mono", monospace; font-size: 0.88rem;
+  padding: 0.4rem 0.6rem; background: var(--surface-2); color: var(--text);
+  border: 1px solid var(--border); border-radius: 5px; margin: 0.2rem 0;
+}
+.modal input[type=text]:focus, .modal select:focus { outline: 2px solid var(--accent); border-color: var(--accent); }
+.modal button {
+  font-family: "IBM Plex Mono", monospace; font-size: 0.82rem;
+  padding: 0.4rem 1.1rem; margin: 0.5rem 0.3rem 0 0;
+  border-radius: 5px; cursor: pointer;
+  border: 1px solid var(--border); background: var(--surface-2); color: var(--text-dim);
+}
+.modal button:hover { color: var(--text); border-color: var(--text-faint); }
+.modal button.primary { color: var(--accent); border-color: var(--accent-dim); }
+.modal button.primary:hover { background: rgba(95,214,196,0.08); border-color: var(--accent); }
+.modal button.confirm-delete { color: var(--danger); border-color: var(--danger); font-size: 0.9rem; padding: 0.5rem 1.5rem; }
+.modal button.confirm-delete:hover { background: var(--danger-bg); }
+.modal label { display: block; margin: 0.7rem 0 0.2rem; font-family: "IBM Plex Mono", monospace; font-size: 0.72rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--text-faint); }
+
+/* ── Browse modal ── */
+#browse-modal { z-index: 200; }
+#browse-modal .modal { min-width: 480px; }
+.browse-path { font-family: "IBM Plex Mono", monospace; font-size: 0.8rem; color: var(--text-dim); background: var(--surface-2); border: 1px solid var(--border); border-radius: 5px; padding: 0.4rem 0.7rem; margin-bottom: 0.6rem; word-break: break-all; }
+.browse-list { list-style: none; margin: 0; padding: 0; max-height: 320px; overflow-y: auto; border: 1px solid var(--border); border-radius: 6px; }
+.browse-list li button { width: 100%; text-align: left; background: none; border: none; border-bottom: 1px solid var(--border); padding: 0.5rem 0.8rem; font-family: "IBM Plex Mono", monospace; font-size: 0.82rem; color: var(--text); cursor: pointer; display: flex; align-items: center; gap: 0.5rem; margin: 0; }
+.browse-list li:last-child button { border-bottom: none; }
+.browse-list li button:hover { background: var(--surface-2); color: var(--accent); }
+.browse-list li.parent button { color: var(--text-faint); }
+.browse-actions { display: flex; gap: 0.5rem; margin-top: 0.8rem; }
+
+#view-transfer { display: flex; flex-direction: column; flex: 1; overflow: hidden; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+
+<header>
+  <a class="back-link" href="http://homeserver:5000">← homeserver</a>
+  <span class="eyebrow">ROM Transfer</span>
+  <label id="console-label" for="console-sel">Console</label>
+  <select id="console-sel" onchange="onConsoleChange()">
+    <option value="">— select —</option>
+  </select>
+  <div class="hdr-spacer"></div>
+  <button id="update-btn" class="update-btn" style="display:none" onclick="doAgentUpdate()">Update agent</button>
+  <button onclick="toggleTheme()">theme</button>
+</header>
+
+<div class="app-body">
+
+  <nav class="sidebar">
+    <div class="sidebar-item active" data-view="transfer" onclick="setView('transfer')">Transfer</div>
+    <div class="sidebar-group">Server</div>
+    <div class="sidebar-item" data-view="consoles" onclick="setView('consoles')">Consoles</div>
+    <div class="sidebar-item" data-view="filetypes" onclick="setView('filetypes')">File Types</div>
+    <div class="sidebar-item" data-view="scanpaths" onclick="setView('scanpaths')">Scan Paths</div>
+    <div class="sidebar-group">Client</div>
+    <div class="sidebar-item" data-view="client" onclick="setView('client')">Destinations</div>
+    <div class="sidebar-item" data-view="agent-status" onclick="setView('agent-status')">Agent Status</div>
+  </nav>
+
+  <div class="content-area">
+
+    <!-- ── Transfer view ── -->
+    <div id="view-transfer">
+      <div class="tabs">
+        <button class="active" id="tab-roms" onclick="switchTab('roms')">ROMs</button>
+        <button id="tab-saves" onclick="switchTab('saves')">Saves</button>
+      </div>
+      <div id="status-bar">Ready.</div>
+      <input type="search" class="file-search" id="search-saves" placeholder="Filter saves…" style="display:none;margin:0.4rem 1.2rem 0;width:calc(100% - 2.4rem);box-sizing:border-box">
+      <div id="panes-roms" class="panes">
+        <div class="pane">
+          <h2>Local</h2>
+          <div class="disk-info" id="local-disk-info"></div>
+          <input type="search" class="file-search" id="search-local" placeholder="Filter…">
+          <table><thead><tr><th class="name-cell">Name</th><th class="size-cell">Size</th><th class="btn-cell"></th></tr></thead>
+          <tbody id="local-body"></tbody></table>
+        </div>
+        <div class="pane">
+          <h2>Server</h2>
+          <input type="search" class="file-search" id="search-server" placeholder="Filter…">
+          <table><thead><tr><th class="name-cell">Name</th><th class="size-cell">Size</th><th class="btn-cell"></th></tr></thead>
+          <tbody id="server-body"></tbody></table>
+        </div>
+      </div>
+      <div id="panes-saves" class="panes" style="display:none">
+        <div class="pane">
+          <div class="pane-heading">
+            <h2>Local Saves</h2>
+            <button class="legend-btn" onclick="toggleLegend('legend-local', this)">?</button>
+          </div>
+          <div class="disk-info" id="saves-local-info"></div>
+          <table><thead><tr><th class="name-cell">Name</th><th class="size-cell">Size</th><th class="btn-cell"></th></tr></thead>
+          <tbody id="saves-local-body"></tbody></table>
+        </div>
+        <div class="pane">
+          <div class="pane-heading">
+            <h2>Server Saves</h2>
+            <button class="legend-btn" onclick="toggleLegend('legend-server', this)">?</button>
+          </div>
+          <table><thead><tr><th style="width:8rem">Game</th><th class="name-cell">File</th><th class="size-cell">Size</th><th class="btn-cell"></th></tr></thead>
+          <tbody id="saves-server-body"></tbody></table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Consoles panel ── -->
+    <div id="view-consoles" class="config-panel" style="display:none">
+      <h2>Consoles</h2>
+      <p class="panel-desc">ROM directories on the server. Each console name must match the entries in File Types.</p>
+      <div class="panel-section">
+        <table class="edit-table" id="consoles-table">
+          <thead><tr><th>Console</th><th>Server ROM path</th><th></th></tr></thead>
+          <tbody id="consoles-rows"></tbody>
+        </table>
+        <div class="panel-actions">
+          <button class="panel-btn" onclick="addConsoleRow('','')">+ Add console</button>
+        </div>
+      </div>
+      <div class="panel-section">
+        <label class="panel-label">Saves root path</label>
+        <input type="text" class="panel-input" id="saves-root-path" placeholder="/mnt/server-pc/Games/SAVEFILES">
+      </div>
+      <div class="panel-actions">
+        <button class="panel-btn primary" onclick="saveConsolesPanel()">Save</button>
+      </div>
+    </div>
+
+    <!-- ── File Types panel ── -->
+    <div id="view-filetypes" class="config-panel" style="display:none">
+      <h2>File Types</h2>
+      <p class="panel-desc">Stored at <code style="font-family:'IBM Plex Mono',monospace;background:var(--surface-3);padding:0.1em 0.4em;border-radius:3px;font-size:0.85em">/var/lib/rom-transfer/filetypes.json</code>. Changes save immediately.</p>
+      <table class="edit-table" id="filetypes-table">
+        <thead><tr><th style="width:9rem">Console</th><th>ROM extensions</th><th>Save extensions</th><th></th></tr></thead>
+        <tbody id="filetypes-rows"></tbody>
+      </table>
+      <div class="panel-actions">
+        <button class="panel-btn" onclick="addFileTypeRow('','','')">+ Add console</button>
+        <button class="panel-btn primary" onclick="saveFileTypesPanel()">Save</button>
+      </div>
+    </div>
+
+    <!-- ── Scan Paths panel ── -->
+    <div id="view-scanpaths" class="config-panel" style="display:none">
+      <h2>Scan Paths</h2>
+      <p class="panel-desc">Stored at <code style="font-family:'IBM Plex Mono',monospace;background:var(--surface-3);padding:0.1em 0.4em;border-radius:3px;font-size:0.85em">/var/lib/rom-transfer/scanpaths.json</code>. The agent checks these paths when scanning for saves.</p>
+      <table class="edit-table" id="scanpaths-table">
+        <thead><tr><th style="width:8rem">Emulator</th><th>Path</th><th style="width:7rem">Console</th><th style="width:6rem">OS</th><th></th></tr></thead>
+        <tbody id="scanpaths-rows"></tbody>
+      </table>
+      <div class="panel-actions">
+        <button class="panel-btn" onclick="addScanPathRow('','','','')">+ Add path</button>
+        <button class="panel-btn primary" onclick="saveScanPathsPanel()">Save</button>
+      </div>
+    </div>
+
+    <!-- ── Client / Destinations panel ── -->
+    <div id="view-client" class="config-panel" style="display:none">
+      <h2>Destinations</h2>
+      <p class="panel-desc">Configure the agent on this client machine.</p>
+      <div class="panel-section">
+        <label class="panel-label">Server URL</label>
+        <input type="text" class="panel-input" id="client-server-url" placeholder="http://192.168.0.120:5035">
+      </div>
+      <div class="panel-section">
+        <h3>Local folders per console</h3>
+        <table class="edit-table">
+          <thead><tr><th>Console</th><th></th><th>Path</th><th></th></tr></thead>
+          <tbody id="client-rows"></tbody>
+        </table>
+        <div class="panel-actions">
+          <button class="panel-btn" onclick="runScan()">Scan for saves</button>
+          <button class="panel-btn primary" onclick="saveClientPanel()">Save</button>
+        </div>
+      </div>
+      <div class="panel-section" id="scan-results-section" style="display:none">
+        <h3>Scan results — click Apply to use a path</h3>
+        <table id="scan-results-table">
+          <thead><tr><th style="width:8rem">Emulator</th><th>Path</th><th style="width:7rem">Console</th><th style="width:4rem">Files</th><th style="width:5rem"></th></tr></thead>
+          <tbody id="scan-results-body"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- ── Agent Status panel ── -->
+    <div id="view-agent-status" class="config-panel" style="display:none">
+      <h2>Agent Status</h2>
+      <p class="panel-desc">Live status of the agent running on this client machine.</p>
+      <div class="panel-section">
+        <table class="edit-table" id="agent-status-table">
+          <tbody id="agent-status-body"></tbody>
+        </table>
+      </div>
+      <div class="panel-section">
+        <label class="panel-label">Download Agent</label>
+        <div style="display:flex;gap:0.5rem;margin-top:0.4rem">
+          <a class="panel-btn" href="/downloads/rom-agent.exe" download>Windows</a>
+          <a class="panel-btn" href="/downloads/rom-agent-linux" download>Linux</a>
+        </div>
+      </div>
+      <div class="panel-actions">
+        <button class="panel-btn primary" onclick="loadAgentStatus()">Refresh</button>
+      </div>
+    </div>
+
+  </div><!-- .content-area -->
+</div><!-- .app-body -->
+
+<!-- Push save modal -->
+<div class="modal-bg" id="push-modal" role="dialog" aria-modal="true">
+  <div class="modal">
+    <h2>Push Save</h2>
+    <label>Game Name</label>
+    <input type="text" id="push-game-name" placeholder="Game name">
+    <label>Console</label>
+    <select id="push-console-sel"></select>
+    <br>
+    <button class="primary" onclick="doPushSave()">Push</button>
+    <button onclick="closeModal('push-modal')">Cancel</button>
+  </div>
+</div>
+
+<!-- Browse modal -->
+<div class="modal-bg" id="browse-modal" role="dialog" aria-modal="true">
+  <div class="modal">
+    <h2>Select Folder</h2>
+    <div class="browse-path" id="browse-current-path"></div>
+    <ul class="browse-list" id="browse-list"></ul>
+    <div class="browse-actions">
+      <button class="primary" onclick="browseSelect()">Select this folder</button>
+      <button onclick="closeModal('browse-modal')">Cancel</button>
+    </div>
+  </div>
+</div>
+
+<!-- Confirm delete dialog -->
+<div class="modal-bg" id="confirm-modal" role="dialog" aria-modal="true">
+  <div class="modal">
+    <h2>Delete file?</h2>
+    <p id="confirm-msg" style="font-size:1.1rem"></p>
+    <button class="confirm-delete" id="confirm-yes">Delete</button>
+    <button onclick="closeModal('confirm-modal')">Cancel</button>
+  </div>
+</div>
+
+<script>
+const AGENT = 'http://127.0.0.1:5031';
+let currentConsole = '';
+let currentTab = 'roms';
+let currentView = 'transfer';
+let statusPoll = null;
+let consoles = [];
+let fileTypes = {};
+
+// ── File type filters ────────────────────────────────────────────────────────
+
+async function loadFileTypes() {
+  try {
+    const r = await fetch('/api/filetypes');
+    if (r.ok) fileTypes = await r.json();
+  } catch (e) {}
+}
+
+function getConsoleExts(type) {
+  const entry = fileTypes[currentConsole];
+  if (entry) return entry[type] || null;
+  const norm = currentConsole.toLowerCase().replace(/[\s\-_.]/g, '');
+  const match = Object.entries(fileTypes).find(([k]) => k.toLowerCase().replace(/[\s\-_.]/g, '') === norm);
+  return match ? match[1][type] || null : null;
+}
+
+function filterByExts(files, type) {
+  const exts = getConsoleExts(type);
+  if (!exts || !exts.length) return files;
+  return files.filter(f => exts.some(e => f.name.toLowerCase().endsWith(e)));
+}
+
+// ── Utilities ────────────────────────────────────────────────────────────────
+
+function fmt(bytes) {
+  if (bytes == null || bytes < 0) return '—';
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+  if (bytes < 1024 * 1024 * 1024) return (bytes / 1024 / 1024).toFixed(1) + ' MB';
+  return (bytes / 1024 / 1024 / 1024).toFixed(2) + ' GB';
+}
+
+function esc(s) {
+  return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+function setStatus(msg, isError) {
+  const el = document.getElementById('status-bar');
+  el.textContent = msg;
+  el.className = isError ? 'error' : '';
+}
+
+function openModal(id) { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+
+async function apiFetch(url, opts) {
+  const r = await fetch(url, opts);
+  if (!r.ok) {
+    const text = await r.text().catch(() => r.statusText);
+    throw new Error(text || r.statusText);
+  }
+  return r;
+}
+
+// ── Navigation ───────────────────────────────────────────────────────────────
+
+function setView(view) {
+  currentView = view;
+  document.querySelectorAll('[id^="view-"]').forEach(el => el.style.display = 'none');
+  document.getElementById('view-' + view).style.display = '';
+  document.querySelectorAll('.sidebar-item').forEach(el => {
+    el.classList.toggle('active', el.dataset.view === view);
+  });
+  const showConsole = view === 'transfer';
+  document.getElementById('console-label').style.display = showConsole ? '' : 'none';
+  document.getElementById('console-sel').style.display = showConsole ? '' : 'none';
+  if (view === 'consoles')     loadConsolesPanel();
+  if (view === 'filetypes')    loadFileTypesPanel();
+  if (view === 'scanpaths')    loadScanPathsPanel();
+  if (view === 'client')       loadClientPanel();
+  if (view === 'agent-status') loadAgentStatus();
+}
+
+// ── Init ─────────────────────────────────────────────────────────────────────
+
+function setupSearch(inputId, tbodyId) {
+  document.getElementById(inputId).addEventListener('input', function() {
+    const q = this.value.toLowerCase();
+    for (const tr of document.getElementById(tbodyId).rows) {
+      tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
+    }
+  });
+}
+
+function setupSavesSearch() {
+  document.getElementById('search-saves').addEventListener('input', function() {
+    const q = this.value.toLowerCase();
+    for (const tbody of ['saves-local-body', 'saves-server-body']) {
+      for (const tr of document.getElementById(tbody).rows) {
+        tr.style.display = tr.textContent.toLowerCase().includes(q) ? '' : 'none';
+      }
+    }
+  });
+}
+
+async function checkAgentVersion() {
+  try {
+    const [agentRes, serverRes] = await Promise.all([
+      fetch(AGENT + '/health'),
+      fetch('/api/agent-version')
+    ]);
+    if (!agentRes.ok || !serverRes.ok) return;
+    const agentData  = await agentRes.json();
+    const serverData = await serverRes.json();
+    if (agentData.version && serverData.version && agentData.version !== serverData.version) {
+      const btn = document.getElementById('update-btn');
+      btn.textContent = 'Update agent (' + agentData.version + ' → ' + serverData.version + ')';
+      btn.style.display = '';
+    }
+  } catch (e) { /* silent */ }
+}
+
+async function doAgentUpdate() {
+  const btn = document.getElementById('update-btn');
+  btn.textContent = 'Updating…';
+  btn.disabled = true;
+  try {
+    await apiFetch(AGENT + '/update', { method: 'POST' });
+  } catch (e) {
+    btn.textContent = 'Update failed: ' + e.message;
+    btn.disabled = false;
+    return;
+  }
+  btn.textContent = 'Restarting…';
+  // Poll until agent comes back
+  for (let i = 0; i < 30; i++) {
+    await new Promise(r => setTimeout(r, 1000));
+    try {
+      const r = await fetch(AGENT + '/health');
+      if (r.ok) {
+        btn.style.display = 'none';
+        btn.disabled = false;
+        setStatus('Agent updated successfully.');
+        checkAgentVersion();
+        return;
+      }
+    } catch (e) { /* still restarting */ }
+  }
+  btn.textContent = 'Restart timed out — refresh page';
+  btn.disabled = false;
+}
+
+async function init() {
+  setupSearch('search-local',  'local-body');
+  setupSearch('search-server', 'server-body');
+  setupSavesSearch();
+  try { await fetch(AGENT + '/health'); } catch (e) {
+    setStatus('Agent not reachable at ' + AGENT + ' — is it running?', true);
+  }
+  await Promise.all([loadConsoles(), loadFileTypes()]);
+  checkAgentVersion();
+}
+
+async function loadConsoles() {
+  try {
+    const r = await apiFetch('/api/consoles');
+    consoles = await r.json() || [];
+    const sel = document.getElementById('console-sel');
+    const prev = sel.value;
+    sel.innerHTML = '<option value="">— select —</option>';
+    for (const c of consoles) {
+      const opt = document.createElement('option');
+      opt.value = c.name; opt.textContent = c.name;
+      if (c.name === prev) opt.selected = true;
+      sel.appendChild(opt);
+    }
+  } catch (e) { setStatus('Cannot load consoles: ' + e.message, true); }
+}
+
+function onConsoleChange() {
+  currentConsole = document.getElementById('console-sel').value;
+  if (currentConsole) loadPanes();
+}
+
+function switchTab(tab) {
+  currentTab = tab;
+  document.getElementById('tab-roms').classList.toggle('active', tab === 'roms');
+  document.getElementById('tab-saves').classList.toggle('active', tab === 'saves');
+  document.getElementById('panes-roms').style.display = tab === 'roms' ? '' : 'none';
+  document.getElementById('panes-saves').style.display = tab === 'saves' ? '' : 'none';
+  document.getElementById('search-saves').style.display = tab === 'saves' ? '' : 'none';
+  if (currentConsole) loadPanes();
+}
+
+function loadPanes() {
+  if (currentTab === 'roms') {
+    document.getElementById('search-local').value = '';
+    document.getElementById('search-server').value = '';
+    loadLocalFiles(); loadServerFiles();
+  } else {
+    document.getElementById('search-saves').value = '';
+    loadSavesPanes();
+  }
+}
+
+// ── ROMs ─────────────────────────────────────────────────────────────────────
+
+async function loadLocalFiles() {
+  try {
+    const r = await apiFetch(AGENT + '/files?console=' + encodeURIComponent(currentConsole));
+    const data = await r.json();
+    const files = filterByExts(data.files || [], 'rom');
+    const di = data.disk_info;
+    document.getElementById('local-disk-info').textContent =
+      di ? 'Folder: ' + fmt(di.folder_size) + '  ·  Free: ' + fmt(di.free_space)
+         : 'No local folder configured for this console.';
+    const tbody = document.getElementById('local-body');
+    tbody.innerHTML = '';
+    for (const f of files) {
+      const tr = document.createElement('tr');
+      const btn = document.createElement('button');
+      btn.className = 'action danger'; btn.textContent = 'Delete';
+      btn.addEventListener('click', () => confirmDelete(f.name));
+      tr.innerHTML = '<td class="name-cell">' + esc(f.name) + '</td><td class="size-cell">' + fmt(f.size) + '</td><td class="btn-cell"></td>';
+      tr.lastChild.appendChild(btn);
+      tbody.appendChild(tr);
+    }
+  } catch (e) { setStatus('Cannot load local files: ' + e.message, true); }
+}
+
+async function loadServerFiles() {
+  try {
+    const r = await apiFetch('/api/files?console=' + encodeURIComponent(currentConsole));
+    const files = filterByExts(await r.json() || [], 'rom');
+    const tbody = document.getElementById('server-body');
+    tbody.innerHTML = '';
+    for (const f of files) {
+      const tr = document.createElement('tr');
+      const btn = document.createElement('button');
+      btn.className = 'action primary'; btn.textContent = 'Transfer';
+      btn.addEventListener('click', () => startTransfer(f.name));
+      tr.innerHTML = '<td class="name-cell">' + esc(f.name) + '</td><td class="size-cell">' + fmt(f.size) + '</td><td class="btn-cell"></td>';
+      tr.lastChild.appendChild(btn);
+      tbody.appendChild(tr);
+    }
+  } catch (e) { setStatus('Cannot load server files: ' + e.message, true); }
+}
+
+function confirmDelete(filename) {
+  document.getElementById('confirm-msg').textContent = '"' + filename + '"';
+  document.getElementById('confirm-yes').onclick = () => doDelete(filename);
+  openModal('confirm-modal');
+  document.getElementById('confirm-yes').focus();
+}
+
+async function doDelete(filename) {
+  closeModal('confirm-modal');
+  try {
+    await apiFetch(AGENT + '/files?console=' + encodeURIComponent(currentConsole) + '&file=' + encodeURIComponent(filename), { method: 'DELETE' });
+    setStatus('Deleted: ' + filename);
+    loadLocalFiles();
+  } catch (e) { setStatus('Delete failed: ' + e.message, true); }
+}
+
+async function startTransfer(filename) {
+  try {
+    await apiFetch(AGENT + '/transfer', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({console: currentConsole, file: filename}) });
+    setStatus('Queued: ' + filename);
+    startStatusPoll();
+  } catch (e) { setStatus('Transfer failed: ' + e.message, true); }
+}
+
+function startStatusPoll() {
+  if (statusPoll) return;
+  statusPoll = setInterval(pollStatus, 800);
+}
+
+async function pollStatus() {
+  try {
+    const r = await apiFetch(AGENT + '/transfer/status');
+    const data = await r.json();
+    if (data.active) {
+      const a = data.active;
+      setStatus('Transferring ' + a.file + ': ' + Math.round(a.percent || 0) + '%  (' + fmt(a.bytes) + ' / ' + fmt(a.total) + ')');
+    } else if (data.queue && data.queue.length > 0) {
+      setStatus('Queued: ' + data.queue.length + ' file(s) waiting');
+    } else {
+      setStatus('Ready.');
+      clearInterval(statusPoll); statusPoll = null;
+      loadLocalFiles();
+    }
+  } catch (e) { clearInterval(statusPoll); statusPoll = null; }
+}
+
+// ── Save legend ───────────────────────────────────────────────────────────────
+
+const legends = {
+  'legend-local': [
+    ['exact',    'Exact match exists on the server'],
+    ['stale',    'A different version is on the server'],
+    ['unpushed', 'Not yet pushed to the server'],
+  ],
+  'legend-server': [
+    ['exact',    'Exact match with selected local file'],
+    ['srv-diff', 'Different version of selected local file'],
+  ],
+};
+
+let activeLegend = null;
+
+function toggleLegend(id, btn) {
+  if (activeLegend && activeLegend.id === id) {
+    activeLegend.el.remove();
+    activeLegend = null;
+    return;
+  }
+  if (activeLegend) {
+    activeLegend.el.remove();
+    activeLegend = null;
+  }
+  const popup = document.createElement('div');
+  popup.className = 'legend-popup';
+  for (const [cls, label] of legends[id]) {
+    const row = document.createElement('div');
+    row.className = 'legend-row';
+    const dot = document.createElement('span');
+    dot.className = 'save-ind ' + cls;
+    row.appendChild(dot);
+    row.appendChild(document.createTextNode(label));
+    popup.appendChild(row);
+  }
+  document.body.appendChild(popup);
+  const rect = btn.getBoundingClientRect();
+  popup.style.top  = (rect.bottom + 6) + 'px';
+  popup.style.left = Math.min(rect.left, window.innerWidth - popup.offsetWidth - 8) + 'px';
+  activeLegend = { id, el: popup };
+  const close = e => { if (!popup.contains(e.target) && e.target !== btn) { popup.remove(); activeLegend = null; document.removeEventListener('click', close); } };
+  setTimeout(() => document.addEventListener('click', close), 0);
+}
+
+// ── Saves ────────────────────────────────────────────────────────────────────
+
+const tooltip = document.createElement('div');
+
+function showTooltip(e, text) {
+  const t = document.getElementById('save-tooltip');
+  t.textContent = text;
+  t.style.display = 'block';
+  t.style.left = (e.clientX + 12) + 'px';
+  t.style.top  = (e.clientY + 12) + 'px';
+}
+
+function hideTooltip() {
+  document.getElementById('save-tooltip').style.display = 'none';
+}
+
+function makeInd(cls, tipText) {
+  const span = document.createElement('span');
+  span.className = 'save-ind ' + cls;
+  span.addEventListener('mouseenter', e => showTooltip(e, tipText));
+  span.addEventListener('mousemove',  e => { const t = document.getElementById('save-tooltip'); t.style.left = (e.clientX + 12) + 'px'; t.style.top = (e.clientY + 12) + 'px'; });
+  span.addEventListener('mouseleave', hideTooltip);
+  return span;
+}
+
+let selectedSaveBase = null;
+
+function saveBaseName(filename) {
+  const dot = filename.lastIndexOf('.');
+  const base = dot >= 0 ? filename.slice(0, dot) : filename;
+  return base.replace(/_\d{8}-\d{6}$/, '');
+}
+
+async function loadLocalSaves() {
+  if (!currentConsole) return;
+  try {
+    const r = await apiFetch(AGENT + '/saves?console=' + encodeURIComponent(currentConsole));
+    return filterByExts(await r.json() || [], 'save');
+  } catch (e) { setStatus('Cannot load local saves: ' + e.message, true); return []; }
+}
+
+async function loadServerSaves() {
+  if (!currentConsole) return;
+  try {
+    const r = await apiFetch('/api/saves?console=' + encodeURIComponent(currentConsole));
+    return filterByExts(await r.json() || [], 'save');
+  } catch (e) { setStatus('Cannot load server saves: ' + e.message, true); return []; }
+}
+
+async function loadSavesPanes() {
+  selectedSaveBase = null;
+  document.getElementById('saves-local-body').innerHTML = '';
+  document.getElementById('saves-server-body').innerHTML = '';
+  if (!currentConsole) return;
+
+  const [localFiles, serverFiles] = await Promise.all([loadLocalSaves(), loadServerSaves()]);
+
+  const serverHashes = new Set((serverFiles || []).filter(f => f.hash).map(f => f.hash));
+  const serverBases  = new Set((serverFiles || []).map(f => saveBaseName(f.name)));
+
+  const localTbody = document.getElementById('saves-local-body');
+  for (const f of (localFiles || [])) {
+    const base = saveBaseName(f.name);
+    let indCls, tipText;
+    if (f.hash && serverHashes.has(f.hash)) {
+      indCls = 'exact';    tipText = 'Exact match exists on the server';
+    } else if (serverBases.has(base)) {
+      indCls = 'stale';    tipText = 'A different version of this file is on the server';
+    } else {
+      indCls = 'unpushed'; tipText = 'This file has not been pushed to the server';
+    }
+    const tr = document.createElement('tr');
+    tr.className = 'save-row';
+    tr.dataset.base = base;
+    tr.dataset.hash = f.hash || '';
+    const btn = document.createElement('button');
+    btn.className = 'action primary'; btn.textContent = 'Push';
+    btn.addEventListener('click', e => { e.stopPropagation(); openPushModal(f.name); });
+    const ind = makeInd(indCls, tipText);
+    tr.innerHTML = '<td class="name-cell"></td><td class="size-cell">' + fmt(f.size) + '</td><td class="btn-cell"></td>';
+    tr.cells[0].appendChild(ind);
+    tr.cells[0].appendChild(document.createTextNode(f.name));
+    tr.lastChild.appendChild(btn);
+    tr.addEventListener('click', () => selectSaveRow(base, f.hash || ''));
+    localTbody.appendChild(tr);
+  }
+
+  const serverTbody = document.getElementById('saves-server-body');
+  for (const f of (serverFiles || [])) {
+    const base = saveBaseName(f.name);
+    const tr = document.createElement('tr');
+    tr.dataset.base = base;
+    tr.dataset.hash = f.hash || '';
+    const btn = document.createElement('button');
+    btn.className = 'action primary'; btn.textContent = 'Pull';
+    btn.addEventListener('click', () => pullSave(f.name));
+    tr.innerHTML = '<td style="font-size:0.82rem;color:var(--text-dim)">' + esc(f.game || '—') + '</td>' +
+                   '<td class="name-cell">' + esc(f.name) + '</td>' +
+                   '<td class="size-cell">' + fmt(f.size) + '</td><td class="btn-cell"></td>';
+    tr.lastChild.appendChild(btn);
+    serverTbody.appendChild(tr);
+  }
+}
+
+let selectedSaveHash = '';
+
+function selectSaveRow(base, hash) {
+  if (selectedSaveBase === base) {
+    selectedSaveBase = null;
+    selectedSaveHash = '';
+  } else {
+    selectedSaveBase = base;
+    selectedSaveHash = hash;
+  }
+  for (const tr of document.getElementById('saves-local-body').rows) {
+    tr.classList.toggle('selected', tr.dataset.base === selectedSaveBase);
+  }
+  const searchBox = document.getElementById('search-saves');
+  if (selectedSaveBase) {
+    searchBox.style.display = 'none';
+    for (const tr of document.getElementById('saves-server-body').rows) {
+      const nameMatch = tr.dataset.base === selectedSaveBase;
+      tr.style.display = nameMatch ? '' : 'none';
+      let ind = tr.querySelector('.save-ind.server-match');
+      if (nameMatch) {
+        const exactMatch = selectedSaveHash && tr.dataset.hash === selectedSaveHash;
+        if (!ind) {
+          ind = makeInd('server-match', '');
+          tr.cells[1].prepend(ind);
+        }
+        ind.className = 'save-ind server-match ' + (exactMatch ? 'exact' : 'srv-diff');
+        ind._tipText = exactMatch ? 'Exact match with local file' : 'Different version of this file';
+        ind.onmouseenter = e => showTooltip(e, ind._tipText);
+      } else if (ind) {
+        ind.remove();
+      }
+    }
+  } else {
+    searchBox.style.display = '';
+    for (const tr of document.getElementById('saves-server-body').rows) {
+      tr.style.display = '';
+      const ind = tr.querySelector('.save-ind.server-match');
+      if (ind) ind.remove();
+    }
+  }
+}
+
+function openPushModal(filename) {
+  const ext = filename.lastIndexOf('.');
+  document.getElementById('push-game-name').value = ext > 0 ? filename.slice(0, ext) : filename;
+  document.getElementById('push-modal').dataset.file = filename;
+  const sel = document.getElementById('push-console-sel');
+  sel.innerHTML = '';
+  for (const c of consoles) {
+    const opt = document.createElement('option');
+    opt.value = c.name; opt.textContent = c.name;
+    if (c.name === currentConsole) opt.selected = true;
+    sel.appendChild(opt);
+  }
+  openModal('push-modal');
+}
+
+async function doPushSave() {
+  const filename = document.getElementById('push-modal').dataset.file;
+  const game = document.getElementById('push-game-name').value.trim();
+  const console_ = document.getElementById('push-console-sel').value;
+  closeModal('push-modal');
+  try {
+    setStatus('Pushing ' + filename + '…');
+    await apiFetch(AGENT + '/saves/push', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({console: console_, file: filename, game}) });
+    setStatus('Pushed: ' + filename);
+    loadSavesPanes();
+  } catch (e) { setStatus('Push failed: ' + e.message, true); }
+}
+
+async function pullSave(filename) {
+  try {
+    setStatus('Pulling ' + filename + '…');
+    await apiFetch(AGENT + '/saves/pull', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({console: currentConsole, file: filename}) });
+    setStatus('Pulled: ' + filename);
+    loadSavesPanes();
+  } catch (e) { setStatus('Pull failed: ' + e.message, true); }
+}
+
+// ── Consoles panel ────────────────────────────────────────────────────────────
+
+async function loadConsolesPanel() {
+  try {
+    const r = await apiFetch('/api/hostconfig');
+    const cfg = await r.json();
+    document.getElementById('consoles-rows').innerHTML = '';
+    for (const c of (cfg.consoles || [])) addConsoleRow(c.name, c.server_path);
+    document.getElementById('saves-root-path').value = cfg.saves_path || '';
+  } catch (e) { setStatus('Cannot load consoles: ' + e.message, true); }
+}
+
+function addConsoleRow(name, path) {
+  const tr = document.createElement('tr');
+  tr.innerHTML = '<td><input type="text" value="' + esc(name) + '" placeholder="PS2"></td>' +
+                 '<td><input type="text" value="' + esc(path) + '" placeholder="/mnt/server-pc/Games/ROMS/PS2"></td>' +
+                 '<td><button class="panel-btn danger" onclick="this.closest(\'tr\').remove()">Remove</button></td>';
+  document.getElementById('consoles-rows').appendChild(tr);
+}
+
+async function saveConsolesPanel() {
+  const rows = document.querySelectorAll('#consoles-rows tr');
+  const consolList = [];
+  for (const tr of rows) {
+    const inputs = tr.querySelectorAll('input');
+    const name = inputs[0].value.trim(), path = inputs[1].value.trim();
+    if (name && path) consolList.push({name, server_path: path});
+  }
+  const saves_path = document.getElementById('saves-root-path').value.trim();
+  try {
+    await apiFetch('/api/hostconfig', { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({consoles: consolList, saves_path}) });
+    setStatus('Consoles saved.');
+    await loadConsoles();
+  } catch (e) { setStatus('Save failed: ' + e.message, true); }
+}
+
+// ── File Types panel ──────────────────────────────────────────────────────────
+
+async function loadFileTypesPanel() {
+  try {
+    const r = await apiFetch('/api/filetypes');
+    const ft = await r.json();
+    const tbody = document.getElementById('filetypes-rows');
+    tbody.innerHTML = '';
+    for (const [name, exts] of Object.entries(ft)) {
+      addFileTypeRow(name, (exts.rom || []).join(', '), (exts.save || []).join(', '));
+    }
+  } catch (e) { setStatus('Cannot load file types: ' + e.message, true); }
+}
+
+function addFileTypeRow(name, rom, save) {
+  const tr = document.createElement('tr');
+  tr.innerHTML = '<td><input type="text" value="' + esc(name) + '" placeholder="PS2"></td>' +
+                 '<td><input type="text" value="' + esc(rom) + '" placeholder=".iso, .bin"></td>' +
+                 '<td><input type="text" value="' + esc(save) + '" placeholder=".ps2, .mcr"></td>' +
+                 '<td><button class="panel-btn danger" onclick="this.closest(\'tr\').remove()">Remove</button></td>';
+  document.getElementById('filetypes-rows').appendChild(tr);
+}
+
+async function saveFileTypesPanel() {
+  const ft = {};
+  for (const tr of document.querySelectorAll('#filetypes-rows tr')) {
+    const inputs = tr.querySelectorAll('input');
+    const name = inputs[0].value.trim();
+    if (!name) continue;
+    const rom = inputs[1].value.split(',').map(s => s.trim()).filter(Boolean);
+    const save = inputs[2].value.split(',').map(s => s.trim()).filter(Boolean);
+    ft[name] = {rom, save};
+  }
+  try {
+    await apiFetch('/api/filetypes', { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(ft) });
+    fileTypes = ft;
+    setStatus('File types saved.');
+  } catch (e) { setStatus('Save failed: ' + e.message, true); }
+}
+
+// ── Scan Paths panel ──────────────────────────────────────────────────────────
+
+async function loadScanPathsPanel() {
+  try {
+    const r = await apiFetch('/api/scanpaths');
+    const paths = await r.json();
+    const tbody = document.getElementById('scanpaths-rows');
+    tbody.innerHTML = '';
+    for (const p of paths) addScanPathRow(p.emulator, p.path, p.console, p.os);
+  } catch (e) { setStatus('Cannot load scan paths: ' + e.message, true); }
+}
+
+function addScanPathRow(emulator, path, console_, os) {
+  const tr = document.createElement('tr');
+  const osOpts = ['', 'windows', 'linux'].map(o =>
+    '<option value="' + o + '"' + (o === os ? ' selected' : '') + '>' + (o || 'any') + '</option>'
+  ).join('');
+  tr.innerHTML = '<td><input type="text" value="' + esc(emulator) + '" placeholder="RetroArch"></td>' +
+                 '<td><input type="text" value="' + esc(path) + '" placeholder="%APPDATA%\\RetroArch\\saves"></td>' +
+                 '<td><input type="text" value="' + esc(console_) + '" placeholder="SNES"></td>' +
+                 '<td><select>' + osOpts + '</select></td>' +
+                 '<td><button class="panel-btn danger" onclick="this.closest(\'tr\').remove()">Remove</button></td>';
+  document.getElementById('scanpaths-rows').appendChild(tr);
+}
+
+async function saveScanPathsPanel() {
+  const paths = [];
+  for (const tr of document.querySelectorAll('#scanpaths-rows tr')) {
+    const inputs = tr.querySelectorAll('input');
+    const sel = tr.querySelector('select');
+    const emulator = inputs[0].value.trim(), path = inputs[1].value.trim();
+    if (!emulator || !path) continue;
+    paths.push({emulator, path, console: inputs[2].value.trim(), os: sel.value});
+  }
+  try {
+    await apiFetch('/api/scanpaths', { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify(paths) });
+    setStatus('Scan paths saved.');
+  } catch (e) { setStatus('Save failed: ' + e.message, true); }
+}
+
+// ── Client / Destinations panel ───────────────────────────────────────────────
+
+async function loadClientPanel() {
+  try {
+    const r = await apiFetch(AGENT + '/config');
+    const cfg = await r.json();
+    document.getElementById('client-server-url').value = cfg.server_url || window.location.origin;
+    const tbody = document.getElementById('client-rows');
+    tbody.innerHTML = '';
+    for (const c of consoles) {
+      const romPath  = (cfg.roms  || {})[c.name] || '';
+      const savePath = (cfg.saves || {})[c.name] || '';
+      const tr = document.createElement('tr');
+      const romInp = document.createElement('input');
+      romInp.type = 'text'; romInp.dataset.console = c.name; romInp.dataset.kind = 'rom';
+      romInp.value = romPath; romInp.placeholder = 'ROMs folder'; romInp.className = 'panel-input';
+      const romBrowse = document.createElement('button');
+      romBrowse.className = 'panel-btn'; romBrowse.textContent = 'Browse';
+      romBrowse.style.whiteSpace = 'nowrap';
+      romBrowse.addEventListener('click', () => openBrowse(romInp));
+      const saveInp = document.createElement('input');
+      saveInp.type = 'text'; saveInp.dataset.console = c.name; saveInp.dataset.kind = 'save';
+      saveInp.value = savePath; saveInp.placeholder = 'Saves folder'; saveInp.className = 'panel-input';
+      const saveBrowse = document.createElement('button');
+      saveBrowse.className = 'panel-btn'; saveBrowse.textContent = 'Browse';
+      saveBrowse.style.whiteSpace = 'nowrap';
+      saveBrowse.addEventListener('click', () => openBrowse(saveInp));
+      tr.innerHTML = '<td style="width:7rem;font-family:\'IBM Plex Mono\',monospace;font-size:0.85rem" rowspan="2">' + esc(c.name) + '</td>' +
+                     '<td style="width:3.5rem;color:var(--text-faint);font-size:0.78rem">ROMs</td><td></td><td style="width:5.5rem;text-align:right"></td>';
+      tr.cells[2].appendChild(romInp);
+      tr.cells[3].appendChild(romBrowse);
+      const tr2 = document.createElement('tr');
+      tr2.innerHTML = '<td style="width:3.5rem;color:var(--text-faint);font-size:0.78rem">Saves</td><td></td><td style="width:5.5rem;text-align:right"></td>';
+      tr2.cells[1].appendChild(saveInp);
+      tr2.cells[2].appendChild(saveBrowse);
+      tbody.appendChild(tr);
+      tbody.appendChild(tr2);
+    }
+    document.getElementById('scan-results-section').style.display = 'none';
+  } catch (e) { setStatus('Cannot load client config: ' + e.message, true); }
+}
+
+async function saveClientPanel() {
+  const serverUrl = document.getElementById('client-server-url').value.trim();
+  const roms = {}, saves = {};
+  for (const inp of document.querySelectorAll('#client-rows input[data-console]')) {
+    const v = inp.value.trim();
+    if (!v) continue;
+    if (inp.dataset.kind === 'save') saves[inp.dataset.console] = v;
+    else roms[inp.dataset.console] = v;
+  }
+  try {
+    await apiFetch(AGENT + '/config', { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({server_url: serverUrl, roms, saves}) });
+    setStatus('Client config saved.');
+  } catch (e) { setStatus('Save failed: ' + e.message, true); }
+}
+
+// ── Agent Status panel ────────────────────────────────────────────────────────
+
+async function loadAgentStatus() {
+  const tbody = document.getElementById('agent-status-body');
+  tbody.innerHTML = '<tr><td colspan="2" style="color:var(--text-faint)">Loading…</td></tr>';
+  const row = (label, value, ok) => {
+    const tr = document.createElement('tr');
+    const valStyle = ok === false ? 'color:var(--danger)' : ok === true ? 'color:#4caf7d' : 'color:var(--text-dim)';
+    tr.innerHTML = '<td style="width:10rem;font-size:0.82rem;color:var(--text-faint)">' + esc(label) + '</td>' +
+                   '<td style="font-family:\'IBM Plex Mono\',monospace;font-size:0.82rem;' + valStyle + '">' + esc(String(value)) + '</td>';
+    return tr;
+  };
+  try {
+    const [healthRes, serverVerRes] = await Promise.all([
+      fetch(AGENT + '/health'),
+      fetch('/api/agent-version').catch(() => null)
+    ]);
+    tbody.innerHTML = '';
+    if (!healthRes.ok) throw new Error('Agent returned ' + healthRes.status);
+    const health = await healthRes.json();
+    const serverVer = serverVerRes && serverVerRes.ok ? (await serverVerRes.json()).version : null;
+    tbody.appendChild(row('Status', health.status === 'ok' ? 'Running' : health.status, health.status === 'ok'));
+    tbody.appendChild(row('Agent version', health.version || '—'));
+    if (serverVer) {
+      const upToDate = health.version === serverVer;
+      tbody.appendChild(row('Latest version', serverVer, upToDate));
+      tbody.appendChild(row('Up to date', upToDate ? 'Yes' : 'No — click "Update agent" in header', upToDate));
+    }
+    tbody.appendChild(row('Address', AGENT));
+    const cfgRes = await fetch(AGENT + '/config');
+    if (cfgRes.ok) {
+      const cfg = await cfgRes.json();
+      tbody.appendChild(row('Server URL', cfg.server_url || '(not set)', !!cfg.server_url));
+      const roms = cfg.roms || {}, saves = cfg.saves || {};
+      for (const c of consoles) {
+        tbody.appendChild(row(c.name + ' ROMs',  roms[c.name]  || '(not set)', !!roms[c.name]));
+        tbody.appendChild(row(c.name + ' Saves', saves[c.name] || '(not set)', !!saves[c.name]));
+      }
+    }
+  } catch (e) {
+    tbody.innerHTML = '';
+    tbody.appendChild(row('Status', 'Unreachable — ' + e.message, false));
+  }
+}
+
+async function runScan() {
+  setStatus('Scanning…');
+  try {
+    const r = await apiFetch(AGENT + '/scan');
+    const results = await r.json();
+    const tbody = document.getElementById('scan-results-body');
+    tbody.innerHTML = '';
+    const section = document.getElementById('scan-results-section');
+    if (!results.length) {
+      setStatus('Scan complete — no matching paths found.');
+      section.style.display = 'none';
+      return;
+    }
+    for (const res of results) {
+      const tr = document.createElement('tr');
+      const sel = document.createElement('select');
+      sel.className = 'scan-console-sel';
+      sel.innerHTML = '<option value="">— select —</option>';
+      for (const c of consoles) {
+        const opt = document.createElement('option');
+        opt.value = c.name; opt.textContent = c.name;
+        if (c.name === res.console) opt.selected = true;
+        sel.appendChild(opt);
+      }
+      const applyBtn = document.createElement('button');
+      applyBtn.className = 'panel-btn primary'; applyBtn.textContent = 'Apply';
+      applyBtn.addEventListener('click', () => applyScanResult(res.path, sel.value));
+      tr.innerHTML = '<td style="font-size:0.82rem">' + esc(res.emulator) + '</td>' +
+                     '<td class="scan-result-path">' + esc(res.path) + '</td>' +
+                     '<td></td>' +
+                     '<td class="scan-count">' + res.file_count + '</td><td></td>';
+      tr.children[2].appendChild(sel);
+      tr.lastChild.appendChild(applyBtn);
+      tbody.appendChild(tr);
+    }
+    section.style.display = '';
+    setStatus('Scan complete — ' + results.length + ' path(s) found.');
+  } catch (e) { setStatus('Scan failed: ' + e.message, true); }
+}
+
+function applyScanResult(path, console_) {
+  if (!console_) { setStatus('Select a console first.', true); return; }
+  const inp = document.querySelector('#client-rows input[data-console="' + CSS.escape(console_) + '"][data-kind="save"]');
+  if (inp) { inp.value = path; setStatus('Applied: ' + console_ + ' → ' + path); }
+  else { setStatus('Console "' + console_ + '" not in configured list — add it in Consoles first.', true); }
+}
+
+// ── Folder browser ────────────────────────────────────────────────────────────
+
+let browseTargetInput = null;
+
+function openBrowse(targetInput) {
+  browseTargetInput = targetInput;
+  browseTo('');
+  openModal('browse-modal');
+}
+
+async function browseTo(path) {
+  try {
+    const r = await apiFetch(AGENT + '/browse' + (path ? '?path=' + encodeURIComponent(path) : ''));
+    const data = await r.json();
+    document.getElementById('browse-current-path').textContent = data.path;
+    const list = document.getElementById('browse-list');
+    list.innerHTML = '';
+    if (data.parent && data.parent !== data.path) {
+      const li = document.createElement('li'); li.className = 'parent';
+      const btn = document.createElement('button'); btn.innerHTML = '↑ ..';
+      btn.addEventListener('click', () => browseTo(data.parent));
+      li.appendChild(btn); list.appendChild(li);
+    }
+    for (const dir of (data.dirs || [])) {
+      const name = dir.replace(/\\/g, '/').split('/').pop() || dir;
+      const li = document.createElement('li');
+      const btn = document.createElement('button'); btn.innerHTML = '📁 ' + esc(name);
+      btn.addEventListener('click', () => browseTo(dir));
+      li.appendChild(btn); list.appendChild(li);
+    }
+  } catch (e) { setStatus('Browse failed: ' + e.message, true); }
+}
+
+function browseSelect() {
+  if (browseTargetInput) browseTargetInput.value = document.getElementById('browse-current-path').textContent;
+  closeModal('browse-modal');
+}
+
+// ── Theme ─────────────────────────────────────────────────────────────────────
+
+function toggleTheme() {
+  const html = document.documentElement;
+  const cur = html.dataset.theme || (matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+  const next = cur === 'dark' ? 'light' : 'dark';
+  html.dataset.theme = next;
+  localStorage.setItem('theme', next);
+}
+(function() { const s = localStorage.getItem('theme'); if (s) document.documentElement.dataset.theme = s; })();
+
+// Close on backdrop / Escape
+document.querySelectorAll('.modal-bg').forEach(bg => {
+  bg.addEventListener('click', e => { if (e.target === bg) bg.classList.remove('open'); });
+});
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.querySelectorAll('.modal-bg.open').forEach(m => m.classList.remove('open'));
+});
+
+init();
+</script>
+<div class="save-tooltip" id="save-tooltip"></div>
+</body>
+</html>

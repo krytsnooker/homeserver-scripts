@@ -1,0 +1,6 @@
+#!/usr/bin/env bash
+uri="$1"
+cmd="${uri#run-cmd://}"
+CMD_TO_RUN=$(python3 -c "import sys, urllib.parse; print(urllib.parse.unquote(sys.argv[1]))" "$cmd")
+export CMD_TO_RUN
+konsole -e bash -c 'eval "$CMD_TO_RUN"; echo; echo "--- Press Enter to close ---"; read'
