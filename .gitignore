@@ -26,3 +26,7 @@ Documents/
 thinclient_drives/
 crash-log.txt
 result
+.ssh/
+.dotnet/
+go/
+tutors/pastes/

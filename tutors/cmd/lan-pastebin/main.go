@@ -251,7 +251,7 @@ func main() {
 	}
 	stateDir := os.Getenv("LAN_PASTEBIN_STATE_DIR")
 	if stateDir == "" {
-		stateDir = "."
+		log.Fatal("LAN_PASTEBIN_STATE_DIR must be set")
 	}
 
 	s := &server{stateDir: stateDir}

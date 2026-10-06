@@ -32,7 +32,7 @@ flake.nix                    — single nixosConfigurations.homeserver; inputs: 
 hosts/homeserver/            — hardware config (partition UUIDs, swap, CIFS mounts, hostname)
 modules/                     — NixOS modules; all loaded by every build:
   common.nix, desktop-kde.nix, lan-apps.nix, minecraft.nix, databases.nix,
-  nginx.nix, samba.nix, emby.nix, audiobookshelf.nix, nextcloud.nix, pihole-container.nix, xrdp.nix, mumble.nix
+  nginx.nix, samba.nix, emby.nix, audiobookshelf.nix, nextcloud.nix, pihole-container.nix, xrdp.nix, mumble.nix, vaultwarden.nix
 apps/                        — source for custom LAN apps (canonical copy; ExecStart refs nix store path)
 pkgs/                        — custom packages (brave-origin-nightly)
 ```
@@ -53,8 +53,9 @@ pkgs/                        — custom packages (brave-origin-nightly)
 | mc-control | 5020 | Flask/waitress; sudo-limited start/stop/is-active for Minecraft |
 | Minecraft | 25565 | neoforge-1_20_1; `autoStart=false`; `online-mode=false` (LAN only) |
 | Mumble (murmur) | 64738 | TCP+UDP; `services.murmur`; registerName "hometalk"; data at `/var/lib/murmur` |
+| Vaultwarden | 443 | `vault.intrentaka.com`; native NixOS module; SQLite; backup at `/var/backup/vaultwarden` |
 
-External domains: `intrentaka.com` / `www.intrentaka.com` → Emby; `cloud.intrentaka.com` → Nextcloud. Let's Encrypt via NixOS ACME (ports 80+443 forwarded from router).
+External domains: `intrentaka.com` / `www.intrentaka.com` → Emby; `cloud.intrentaka.com` → Nextcloud; `vault.intrentaka.com` → Vaultwarden. Let's Encrypt via NixOS ACME (ports 80+443 forwarded from router).
 
 **Router:** TP-Link ER605. Port forwarding lives at **Transmission → NAT → Virtual Servers** (standalone UI) or **Settings → Transmission → NAT → Virtual Servers** (Omada controller). Required rules: WAN:80 → 192.168.0.120:80 TCP, WAN:443 → 192.168.0.120:443 TCP. If external domains become unreachable, check these rules first — the ER605 loses them on some firmware updates/resets.
 
@@ -74,6 +75,7 @@ journalctl -u <service> -f         # live logs
 | `/var/lib/pihole/secrets.env` | `root:root` | 600 | `WEBPASSWORD` |
 | `/var/lib/nextcloud-admin-pass` | `root:root` | 600 | Single-line admin password |
 | `/var/lib/nextcloud/nc-secrets.php` | `nextcloud:nextcloud` | 400 | JSON (despite `.php` extension — nextcloud34 module requirement); must preserve original `instanceid`, `passwordsalt`, `secret` values from backup or all user passwords are invalidated |
+| `/var/lib/vaultwarden/secrets.env` | `vaultwarden:vaultwarden` | 600 | `ADMIN_TOKEN` (bcrypt hash) |
 
 Verify secrets with: `bash /home/kryt/check-secrets.sh`
 
