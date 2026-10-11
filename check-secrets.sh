@@ -85,6 +85,15 @@ else
   bad "does not exist"
 fi
 
+section "/var/lib/rom-transfer/secrets.env (ROM Transfer Pi-hole password)"
+f=/var/lib/rom-transfer/secrets.env
+if [ -f "$f" ]; then
+  check_perms "$f" 600 "rom-transfer:rom-transfer"
+  check_keys_present "$f" PIHOLE_PASSWORD
+else
+  bad "does not exist"
+fi
+
 section "/var/lib/nextcloud-admin-pass (Nextcloud admin password)"
 f=/var/lib/nextcloud-admin-pass
 if [ -f "$f" ]; then
