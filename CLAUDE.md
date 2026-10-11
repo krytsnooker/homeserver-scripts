@@ -73,11 +73,14 @@ journalctl -u <service> -f         # live logs
 | `/home/kryt/.smbcredentials` | `kryt:kryt` | 600 | `username`, `password`, `domain` for CIFS |
 | `/var/lib/music-info/secrets.env` | `music-info:music-info` | 600 | `DISCOGS_TOKEN`, `EMBY_API_KEY`, `EMBY_BASE_URL`, `EMBY_EXTERNAL_URL` (`MUSIC_PATH` is set in the systemd unit in `modules/lan-apps.nix`) |
 | `/var/lib/pihole/secrets.env` | `root:root` | 600 | `WEBPASSWORD` |
+| `/var/lib/rom-transfer/secrets.env` | `rom-transfer:rom-transfer` | 600 | `PIHOLE_PASSWORD` |
 | `/var/lib/nextcloud-admin-pass` | `root:root` | 600 | Single-line admin password |
 | `/var/lib/nextcloud/nc-secrets.php` | `nextcloud:nextcloud` | 400 | JSON (despite `.php` extension — nextcloud34 module requirement); must preserve original `instanceid`, `passwordsalt`, `secret` values from backup or all user passwords are invalidated |
 | `/var/lib/vaultwarden/secrets.env` | `vaultwarden:vaultwarden` | 600 | `ADMIN_TOKEN` (bcrypt hash) |
 
 Verify secrets with: `bash /home/kryt/check-secrets.sh`
+
+All secrets are backed up as secure notes in Vaultwarden under `homeserver/` (e.g. `homeserver/pihole`, `homeserver/rom-transfer`, etc.).
 
 ## Critical conventions
 
